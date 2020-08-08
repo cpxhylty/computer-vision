@@ -1,0 +1,6 @@
+.idea
+venv
+cifar-100-python
+cifar-10-batches-py
+pic4
+__pycache__
