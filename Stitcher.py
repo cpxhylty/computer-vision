@@ -97,8 +97,8 @@ class Stitcher:
             if s == 1:
                 # 画出匹配对
                 ptA = (int(kpsA[queryIdx][0]), int(kpsA[queryIdx][1]))
-            ptB = (int(kpsB[trainIdx][0]) + wA, int(kpsB[trainIdx][1]))
-            cv2.line(vis, ptA, ptB, (0, 255, 0), 1)
+                ptB = (int(kpsB[trainIdx][0]) + wA, int(kpsB[trainIdx][1]))
+                cv2.line(vis, ptA, ptB, (0, 255, 0), 1)
 
       # 返回可视化结果
         return vis
