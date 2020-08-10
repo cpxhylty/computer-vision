@@ -1,11 +1,10 @@
 import pickle as p
 import numpy as np
 from PIL import Image
-import edge_filter as ef
 import matplotlib.pyplot as plt
 
 
-def load_CIFAR_batch(filename):
+def load_CIFAR_100(filename):
     with open(filename, 'rb')as f:
         datadict = p.load(f, encoding='bytes')
         x = datadict[b'data']
@@ -13,10 +12,25 @@ def load_CIFAR_batch(filename):
         y = datadict[b'fine_labels']
         file_names = datadict[b'filenames']
         #batch_labels = datadict[b'batch_label']
-        x = x.reshape(50000, 3, 32, 32)
-        y = np.array(y)
+        x = x.reshape(50000, 3, 32, 32).transpose(0, 2, 3, 1)
+        y = np.array(y).reshape(50000, 1)
         return x, y, file_names
     # dict_keys([b'data', b'coarse_labels', b'fine_labels', b'filenames', b'batch_label'])
+
+def load_CIFAR_10(pre_filename):
+    for i in range(1, 6):
+        filename = pre_filename + str(i)
+        with open(filename, 'rb')as f:
+            datadict = p.load(f, encoding='bytes')
+        if i == 1:
+            x = datadict[b'data'].reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1)
+            y = np.array(datadict[b'labels']).reshape(10000, 1)
+        else:
+            x_new = datadict[b'data'].reshape(10000, 3, 32, 32).transpose(0, 2, 3, 1)
+            x = np.concatenate((x, x_new), axis=0)
+            y_new = np.array(datadict[b'labels']).reshape(10000, 1)
+            y = np.concatenate((y, y_new), axis=0)
+    return x, y
 
 def visualize(image):
     img0 = image[0]
