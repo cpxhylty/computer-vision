@@ -25,7 +25,7 @@ def create_placeholders(n_H0, n_W0, n_C0, n_y):
     return X, Y
 
 
-def initialize_parameters():
+def initialize_parameters(read_W):
     """
     Initializes weight parameters to build a neural network with tensorflow. The shapes are:
                         W1 : [4, 4, 3, 8]
@@ -37,9 +37,12 @@ def initialize_parameters():
     """
 
     # tf.set_random_seed(1)  # so that your "random" numbers match ours
-
-    W1 = tf.get_variable('W1', [3, 3, 3, 8], initializer=tf.contrib.layers.xavier_initializer(seed=0))
-    W2 = tf.get_variable('W2', [3, 3, 8, 16], initializer=tf.contrib.layers.xavier_initializer(seed=0))
+    if read_W:
+        W1 = tf.Variable(np.arange(216).reshape((3, 3, 3, 8)), dtype=tf.float32, name="W1")
+        W2 = tf.Variable(np.arange(1152).reshape((3, 3, 8, 16)), dtype=tf.float32, name="W2")
+    else:
+        W1 = tf.get_variable('W1', [3, 3, 3, 8], initializer=tf.contrib.layers.xavier_initializer(seed=0))
+        W2 = tf.get_variable('W2', [3, 3, 8, 16], initializer=tf.contrib.layers.xavier_initializer(seed=0))
 
     parameters = {"W1": W1,
                   "W2": W2}
@@ -107,7 +110,8 @@ def compute_cost(Z3, Y):
     return cost
 
 
-def model(X_train, Y_train, X_test, Y_test, learning_rate=0.009, num_epochs=10, minibatch_size=64, print_cost=True):
+def model(X_train, Y_train, X_test, Y_test, learning_rate=0.009, num_epochs=10, minibatch_size=64,
+          print_cost=True, read_W = False, save_W = False):
     """
     Implements a three-layer ConvNet in Tensorflow:
     CONV2D -> RELU -> MAXPOOL -> CONV2D -> RELU -> MAXPOOL -> FLATTEN -> FULLYCONNECTED
@@ -139,7 +143,7 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.009, num_epochs=10, 
     X, Y = create_placeholders(n_H0, n_W0, n_C0, n_y)
 
     # Initialize parameters
-    parameters = initialize_parameters()
+    parameters = initialize_parameters(read_W)
 
     # Forward propagation: Build the forward propagation in the tensorflow graph
     Z3 = forward_propagation(X, parameters)
@@ -153,11 +157,17 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.009, num_epochs=10, 
     # Initialize all the variables globally
     init = tf.global_variables_initializer()
 
+    saver = tf.train.Saver()
+
     # Start the session to compute the tensorflow graph
     with tf.Session() as sess:
 
         # Run the initialization
         sess.run(init)
+
+        if read_W:
+            saver.restore(sess, "./model21.ckpt")
+            #print(sess.run(parameters['W1'][0][0]))
 
         # Do the training loop
         for epoch in range(num_epochs):
@@ -198,11 +208,16 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.009, num_epochs=10, 
 
         # Calculate accuracy on the test set
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-        print(accuracy)
+        #print(accuracy)
         train_accuracy = accuracy.eval({X: X_train, Y: Y_train})
         test_accuracy = accuracy.eval({X: X_test, Y: Y_test})
         print("Train Accuracy:", train_accuracy)
         print("Test Accuracy:", test_accuracy)
+        if save_W:
+            saver = tf.train.Saver()
+            saver.save(sess, "./model27.ckpt")
+
+        #print(sess.run(parameters['W1'][0][0]))
 
         return train_accuracy, test_accuracy, parameters
 
@@ -213,4 +228,4 @@ Y_train = convert_to_one_hot(Y_train_orig, 10).T
 Y_test = convert_to_one_hot(Y_test_orig, 10).T
 '''print(X_train.shape)
 print(Y_train.shape)'''
-_, _, parameters = model(X_train, Y_train, X_test, Y_test, num_epochs=3, minibatch_size=50)
+_, _, parameters = model(X_train, Y_train, X_test, Y_test, num_epochs=6, minibatch_size=200, read_W=True, save_W=True)
