@@ -3,6 +3,7 @@ from tensorflow.python.framework import ops
 import numpy as np
 import matplotlib.pyplot as plt
 from cnn_utils import *
+import time
 
 def create_placeholders(n_H0, n_W0, n_C0, n_y):
     """
@@ -38,10 +39,10 @@ def initialize_parameters(read_W):
 
     # tf.set_random_seed(1)  # so that your "random" numbers match ours
     if read_W:
-        W1 = tf.Variable(np.arange(216).reshape((3, 3, 3, 8)), dtype=tf.float32, name="W1")
+        W1 = tf.Variable(np.arange(288).reshape((3, 3, 4, 8)), dtype=tf.float32, name="W1")
         W2 = tf.Variable(np.arange(1152).reshape((3, 3, 8, 16)), dtype=tf.float32, name="W2")
     else:
-        W1 = tf.get_variable('W1', [3, 3, 3, 8], initializer=tf.contrib.layers.xavier_initializer(seed=0))
+        W1 = tf.get_variable('W1', [3, 3, 4, 8], initializer=tf.contrib.layers.xavier_initializer(seed=0))
         W2 = tf.get_variable('W2', [3, 3, 8, 16], initializer=tf.contrib.layers.xavier_initializer(seed=0))
 
     parameters = {"W1": W1,
@@ -166,7 +167,7 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.009, num_epochs=10, 
         sess.run(init)
 
         if read_W:
-            saver.restore(sess, "./model21.ckpt")
+            saver.restore(sess, "./models/model_lbp33.ckpt")
             #print(sess.run(parameters['W1'][0][0]))
 
         # Do the training loop
@@ -196,11 +197,11 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.009, num_epochs=10, 
                 costs.append(minibatch_cost)
 
         # plot the cost
-        plt.plot(np.squeeze(costs))
+        '''plt.plot(np.squeeze(costs))
         plt.ylabel('cost')
         plt.xlabel('iterations (per tens)')
         plt.title("Learning rate =" + str(learning_rate))
-        plt.show()
+        plt.show()'''
 
         # Calculate the correct predictions
         predict_op = tf.argmax(Z3, 1)
@@ -215,17 +216,21 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.009, num_epochs=10, 
         print("Test Accuracy:", test_accuracy)
         if save_W:
             saver = tf.train.Saver()
-            saver.save(sess, "./model27.ckpt")
+            saver.save(sess, "./models/model_lbp39.ckpt")
 
         #print(sess.run(parameters['W1'][0][0]))
 
         return train_accuracy, test_accuracy, parameters
 
 X_train_orig, Y_train_orig, X_test_orig, Y_test_orig = load_dataset()
-X_train = X_train_orig/255.
-X_test = X_test_orig/255.
+lbp_train = np.load('lbp_character.npy') / 100.
+lbp_test = np.load('lbp_character_test.npy') / 100.
+X_train = np.concatenate((X_train_orig/255., lbp_train), axis=3)
+X_test = np.concatenate((X_test_orig/255., lbp_test), axis=3)
 Y_train = convert_to_one_hot(Y_train_orig, 10).T
 Y_test = convert_to_one_hot(Y_test_orig, 10).T
-'''print(X_train.shape)
-print(Y_train.shape)'''
+print(X_train.shape)
+print(X_test.shape)
+time_1 = time.time()
 _, _, parameters = model(X_train, Y_train, X_test, Y_test, num_epochs=6, minibatch_size=200, read_W=True, save_W=True)
+print(time.time() - time_1)
