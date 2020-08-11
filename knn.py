@@ -1,4 +1,3 @@
-import lbp
 import load_dataset as ld
 import numpy as np
 
@@ -6,8 +5,10 @@ test_number = 100
 train_number = 40000 # no greater than 40000
 K = 11
 correction_number = 0
-x_train, y_train, file_names = ld.load_CIFAR_batch("./cifar-100-python/train")
+x_train, y_train, file_names = ld.load_CIFAR_100("./cifar-100-python/train")
+# use 40000-50000 as test set
 x_test, y_test = x_train[40000:40000+test_number].reshape(test_number, 32*32*3) / 255, y_train[40000:40000+test_number]
+# use 0-39999 as training set
 x_train, y_train = x_train[0:train_number].reshape(train_number, 32*32*3) / 255, y_train[0:train_number]
 y_hats_over_examples = []
 
@@ -30,9 +31,6 @@ for i in range(test_number):
                 distances.insert(k, temp_distance)
                 y_hats.insert(k, y_train[j])
                 break
-        '''if temp_distance < distance:
-            y_hat = y_train[j]
-            distance = temp_distance'''
     y_hats = y_hats[0:K]
     distances = distances[0:K]
     number_of_y_hat = 0

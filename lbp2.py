@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import load_dataset as ld
-import time
 
 def get_pixel(img, center, x, y):
     new_value = 0
@@ -74,15 +73,13 @@ def show_output(output_list):
 def calculate_lbp(img_bgr):
     #image_file = 'lenna.jpg'
     #img_bgr = cv2.imread(image_file)
-    '''
     img_r = img_bgr[0].reshape(32, 32, 1)
     img_g = img_bgr[1].reshape(32, 32, 1)
     img_b = img_bgr[2].reshape(32, 32, 1)
     img_bgr = np.concatenate((np.concatenate((img_r, img_g), axis=2), img_b), axis=2)
-    '''
-    '''print(img_bgr.shape)
-    plt.imshow(img_bgr)
-    plt.show()'''
+    #print(img_bgr.shape)
+    #plt.imshow(img_bgr)
+    #plt.show()显示图片
     height, width, channel = img_bgr.shape
     img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
     
@@ -95,15 +92,13 @@ def calculate_lbp(img_bgr):
     return img_lbp_vector
     #print("LBP Program is finished")
 
-start_time = time.time()
-examples_processed = 40000
-x_train, _ = ld.load_CIFAR_10("./cifar-10-batches-py/data_batch_")
-lbp_matrix = np.zeros((5000, 32, 32, 1))
-padding = np.zeros((32, 24, 1))
-for i in range(40000, 45000):
+examples_processed = 1
+x_train, y_train, file_names = ld.load_CIFAR_100("D:/picture-data/cifar-100-python/train")
+lbp_matrix = np.zeros((examples_processed, 256))
+for i in range(examples_processed):
     image = x_train[i]
-    lpb_vector = np.concatenate((calculate_lbp(image).reshape(32, 8, 1), padding), axis=1)
-    lbp_matrix[i-40000][:][:][:] = lpb_vector
-    if i % 1000 == 0:
-        print(np.max(lpb_vector))
-np.save('lbp_character_test', lbp_matrix)
+    lpb_vector = calculate_lbp(image)
+    lbp_matrix[i][:] = lpb_vector
+print(lbp_matrix)
+#with open("D:/picture-data/cifar-100-python/lbp-data.txt", 'ab')as abc:
+    #np.savetxt(abc, lbp_matrix, delimiter=",")
